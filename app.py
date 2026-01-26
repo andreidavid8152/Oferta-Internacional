@@ -90,7 +90,7 @@ try:
     with col2:
         st.metric("Total de Matriculados", f"{df_tabla['MATRICULADOS'].sum():,.0f}")
     with col3:
-        st.metric("Países Únicos", df_filtrado["PAIS"].nunique())
+        st.metric("Universidades", df_filtrado["NOMBRE INSTITUCION"].nunique())
 
     # Configurar la tabla con formato
     st.dataframe(
