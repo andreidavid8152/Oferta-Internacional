@@ -174,23 +174,25 @@ if df is not None:
             yaxis=dict(showgrid=False),
         )
 
-        col1, col2, col3, col4 = st.columns(4)
-
-        # Calcular el total real de carreras después de aplicar los filtros, antes del top 10
+        # Calcular los valores para las tarjetas
         total_carreras_real = (
             df_filtrado["NOMBRE CARRERA"].nunique()
             if "NOMBRE CARRERA" in df_filtrado.columns
             else 0
         )
-
-        # Obtener nombres de carreras y calcular tamaño de fuente dinámico
+        total_matriculados = int(df_filtrado["MATRICULADOS"].sum())
+        total_universidades = (
+            df_filtrado["NOMBRE INSTITUCION"].nunique()
+            if "NOMBRE INSTITUCION" in df_filtrado.columns
+            else 0
+        )
         carrera_mayor = df_grafico.iloc[-1]["CARRERA"]
         carrera_menor = df_grafico.iloc[0]["CARRERA"]
-
-        # Calcular tamaño de fuente dinámico (entre 12 y 20px)
         font_size_mayor = max(12, min(20, 300 // len(carrera_mayor)))
         font_size_menor = max(12, min(20, 300 // len(carrera_menor)))
 
+        # Todas las tarjetas en una sola fila
+        col1, col2, col3, col4, col5 = st.columns(5)
         with col1:
             st.markdown(
                 f"""
@@ -201,7 +203,7 @@ if df is not None:
                 box-shadow: 0 4px 12px rgba(0,0,0,0.1);
                 text-align: center;
                 color: white;
-                min-height: 160px;
+                height: 170px;
                 display: flex;
                 flex-direction: column;
                 justify-content: center;
@@ -213,8 +215,29 @@ if df is not None:
             """,
                 unsafe_allow_html=True,
             )
-
         with col2:
+            st.markdown(
+                f"""
+            <div style="
+                background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+                padding: 24px 28px;
+                border-radius: 10px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+                text-align: center;
+                color: white;
+                height: 170px;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+            ">
+                <div style="font-size: 28px; margin-bottom: 8px;">👥</div>
+                <div style="font-size: 12px; opacity: 0.95; margin-bottom: 6px; font-weight: 500;">Total Matriculados</div>
+                <div style="font-size: 28px; font-weight: bold;">{total_matriculados:,}</div>
+            </div>
+            """,
+                unsafe_allow_html=True,
+            )
+        with col3:
             st.markdown(
                 f"""
             <div style="
@@ -224,7 +247,29 @@ if df is not None:
                 box-shadow: 0 4px 12px rgba(0,0,0,0.1);
                 text-align: center;
                 color: white;
-                min-height: 160px;
+                height: 170px;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+            ">
+                <div style="font-size: 28px; margin-bottom: 8px;">🏫</div>
+                <div style="font-size: 12px; opacity: 0.95; margin-bottom: 6px; font-weight: 500;">Universidades</div>
+                <div style="font-size: 28px; font-weight: bold;">{total_universidades}</div>
+            </div>
+            """,
+                unsafe_allow_html=True,
+            )
+        with col4:
+            st.markdown(
+                f"""
+            <div style="
+                background: linear-gradient(135deg, #10b981 0%, #34d399 100%);
+                padding: 20px 25px;
+                border-radius: 10px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+                text-align: center;
+                color: white;
+                height: 170px;
                 display: flex;
                 flex-direction: column;
                 justify-content: center;
@@ -237,8 +282,7 @@ if df is not None:
             """,
                 unsafe_allow_html=True,
             )
-
-        with col3:
+        with col5:
             st.markdown(
                 f"""
             <div style="
@@ -248,7 +292,7 @@ if df is not None:
                 box-shadow: 0 4px 12px rgba(0,0,0,0.1);
                 text-align: center;
                 color: white;
-                min-height: 160px;
+                height: 170px;
                 display: flex;
                 flex-direction: column;
                 justify-content: center;
@@ -262,30 +306,66 @@ if df is not None:
                 unsafe_allow_html=True,
             )
 
-        with col4:
-            st.markdown(
-                f"""
-            <div style="
-                background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
-                padding: 20px 25px;
-                border-radius: 10px;
-                box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-                text-align: center;
-                color: white;
-                min-height: 160px;
-                display: flex;
-                flex-direction: column;
-                justify-content: center;
-            ">
-                <div style="font-size: 28px; margin-bottom: 8px;">📊</div>
-                <div style="font-size: 12px; opacity: 0.95; margin-bottom: 6px; font-weight: 500;">Promedio</div>
-                <div style="font-size: 28px; font-weight: bold;">{df_grafico['MATRICULADOS'].mean():,.0f}</div>
-            </div>
-            """,
-                unsafe_allow_html=True,
-            )
-
         st.plotly_chart(fig, use_container_width=True)
+        # --- Ranking de Universidades (bloque de insights y gráfico) ---
+        st.subheader("🎓 Ranking de Universidades")
+
+        # Agrupar por universidad y sumar matriculados
+        df_uni = df_filtrado[["NOMBRE INSTITUCION", "MATRICULADOS"]].copy()
+        df_uni = df_uni.rename(columns={"NOMBRE INSTITUCION": "INSTITUCION"})
+        df_uni = df_uni.groupby("INSTITUCION", as_index=False)["MATRICULADOS"].sum()
+        # Truncar nombres de universidades a 50 caracteres con puntos suspensivos
+        df_uni["INSTITUCION"] = df_uni["INSTITUCION"].apply(
+            lambda x: x[:50] + "..." if len(x) > 50 else x
+        )
+        # Top 10 universidades
+        df_uni_top = df_uni.sort_values("MATRICULADOS", ascending=False).head(10)
+        df_uni_top = df_uni_top.sort_values("MATRICULADOS", ascending=True)
+
+        if len(df_uni_top) > 0:
+
+            # Gráfico de universidades
+            fig_uni = go.Figure(
+                data=[
+                    go.Bar(
+                        y=df_uni_top["INSTITUCION"],
+                        x=df_uni_top["MATRICULADOS"],
+                        orientation="h",
+                        marker=dict(
+                            color=df_uni_top["MATRICULADOS"],
+                            colorscale="Viridis",
+                            showscale=True,
+                            colorbar=dict(
+                                title="Total<br>Matriculados", thickness=15, len=0.7
+                            ),
+                        ),
+                        text=df_uni_top["MATRICULADOS"].apply(lambda x: f"{x:,}"),
+                        textposition="auto",
+                        hovertemplate="<b>%{y}</b><br>Total Matriculados: %{x:,}<extra></extra>",
+                    )
+                ]
+            )
+            fig_uni.update_layout(
+                title={
+                    "text": "Ranking de Universidades por Total de Matriculados Internacionales",
+                    "x": 0.5,
+                    "xanchor": "center",
+                    "font": {"size": 18, "color": "#1f77b4"},
+                },
+                xaxis_title="Total de Matriculados",
+                yaxis_title="Universidad",
+                height=max(400, len(df_uni_top) * 30 + 100),
+                hovermode="closest",
+                margin=dict(l=300, r=50, t=100, b=50),
+                plot_bgcolor="rgba(240, 240, 240, 0.5)",
+                paper_bgcolor="white",
+                font=dict(family="Arial, sans-serif", size=12),
+                xaxis=dict(
+                    showgrid=True, gridwidth=1, gridcolor="lightgray", zeroline=False
+                ),
+                yaxis=dict(showgrid=False),
+            )
+            st.plotly_chart(fig_uni, use_container_width=True)
     else:
         st.warning("⚠️ No hay datos que mostrar con los filtros seleccionados.")
 
