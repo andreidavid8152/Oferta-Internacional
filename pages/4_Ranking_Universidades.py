@@ -4,7 +4,7 @@ import plotly.graph_objects as go
 import os
 
 # Configuracion de la pagina
-st.set_page_config(page_title="Ranking de Universidades", page_icon="??", layout="wide")
+st.set_page_config(page_title="Ranking de Universidades", page_icon="🎓", layout="wide")
 
 
 # Funcion para cargar datos
@@ -36,19 +36,17 @@ df = load_data()
 
 if df is not None:
     # Titulo principal
-    st.title("?? Ranking de Universidades - Matriculados Internacionales")
+    st.title("🎓 Ranking de Universidades")
 
     # Seccion de filtros
-    st.subheader("?? Filtros")
+    st.subheader("🔍 Filtros")
 
     # Crear 5 columnas para los filtros
     col1, col2, col3, col4, col5 = st.columns(5)
 
     # Filtro 1: Pais
     with col1:
-        paises = ["Todos"] + sort_filter_values(
-            df["PAIS"].dropna().unique().tolist()
-        )
+        paises = ["Todos"] + sort_filter_values(df["PAIS"].dropna().unique().tolist())
         pais_seleccionado = st.selectbox("Pais", paises, key="pais")
 
     # Aplicar filtro de pais
@@ -116,7 +114,6 @@ if df is not None:
         ]
 
     # Preparar datos para el grafico
-    st.subheader("?? Ranking de Universidades")
 
     # Agrupar por universidad y sumar matriculados
     df_grafico = df_filtrado[["NOMBRE INSTITUCION", "MATRICULADOS"]].copy()
@@ -176,105 +173,49 @@ if df is not None:
             yaxis=dict(showgrid=False),
         )
 
-        col1, col2, col3, col4 = st.columns(4)
+        # Insights generales (no basados en el top 10)
+        total_matriculados = int(df_filtrado["MATRICULADOS"].sum())
+        total_universidades = df_filtrado["NOMBRE INSTITUCION"].nunique()
 
-        # Obtener nombres de universidades y calcular tamano de fuente dinamico
-        uni_mayor = df_grafico.iloc[-1]["INSTITUCION"]
-        uni_menor = df_grafico.iloc[0]["INSTITUCION"]
+        # Tarjetas minimalistas con HTML/CSS personalizado (igual que Dashboard)
+        st.subheader("📊 Resumen")
+        col1, card1, col2, card2, col3 = st.columns([0.8, 1.2, 0.6, 1.2, 0.8])
 
-        # Calcular tamano de fuente dinamico (entre 12 y 20px)
-        font_size_mayor = max(12, min(20, 300 // len(uni_mayor)))
-        font_size_menor = max(12, min(20, 300 // len(uni_menor)))
-
-        with col1:
+        # Tarjeta 1: Total Matriculados
+        with card1:
             st.markdown(
                 f"""
             <div style="
-                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                padding: 20px 25px;
+                background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+                padding: 24px 28px;
                 border-radius: 10px;
                 box-shadow: 0 4px 12px rgba(0,0,0,0.1);
                 text-align: center;
                 color: white;
-                min-height: 160px;
-                display: flex;
-                flex-direction: column;
-                justify-content: center;
             ">
-                <div style="font-size: 28px; margin-bottom: 8px;">??</div>
-                <div style="font-size: 12px; opacity: 0.95; margin-bottom: 6px; font-weight: 500;">Total Universidades</div>
-                <div style="font-size: 28px; font-weight: bold;">{len(df_grafico)}</div>
+                <div style="font-size: 36px; margin-bottom: 10px;">👥</div>
+                <div style="font-size: 13px; opacity: 0.95; margin-bottom: 8px; font-weight: 500; letter-spacing: 0.3px;">Total Matriculados</div>
+                <div style="font-size: 32px; font-weight: bold; line-height: 1.2;">{total_matriculados:,}</div>
             </div>
             """,
                 unsafe_allow_html=True,
             )
 
-        with col2:
+        # Tarjeta 2: Universidades
+        with card2:
             st.markdown(
                 f"""
             <div style="
                 background: linear-gradient(135deg, #10b981 0%, #34d399 100%);
-                padding: 20px 25px;
+                padding: 24px 28px;
                 border-radius: 10px;
                 box-shadow: 0 4px 12px rgba(0,0,0,0.1);
                 text-align: center;
                 color: white;
-                min-height: 160px;
-                display: flex;
-                flex-direction: column;
-                justify-content: center;
             ">
-                <div style="font-size: 28px; margin-bottom: 8px;">??</div>
-                <div style="font-size: 12px; opacity: 0.95; margin-bottom: 6px; font-weight: 500;">Mayor Demanda</div>
-                <div style="font-size: {font_size_mayor}px; font-weight: bold; line-height: 1.2; word-wrap: break-word;">{uni_mayor}</div>
-                <div style="font-size: 11px; opacity: 0.9; margin-top: 5px;">{df_grafico.iloc[-1]['MATRICULADOS']:,}</div>
-            </div>
-            """,
-                unsafe_allow_html=True,
-            )
-
-        with col3:
-            st.markdown(
-                f"""
-            <div style="
-                background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-                padding: 20px 25px;
-                border-radius: 10px;
-                box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-                text-align: center;
-                color: white;
-                min-height: 160px;
-                display: flex;
-                flex-direction: column;
-                justify-content: center;
-            ">
-                <div style="font-size: 28px; margin-bottom: 8px;">??</div>
-                <div style="font-size: 12px; opacity: 0.95; margin-bottom: 6px; font-weight: 500;">Menor Demanda</div>
-                <div style="font-size: {font_size_menor}px; font-weight: bold; line-height: 1.2; word-wrap: break-word;">{uni_menor}</div>
-                <div style="font-size: 11px; opacity: 0.9; margin-top: 5px;">{df_grafico.iloc[0]['MATRICULADOS']:,}</div>
-            </div>
-            """,
-                unsafe_allow_html=True,
-            )
-
-        with col4:
-            st.markdown(
-                f"""
-            <div style="
-                background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
-                padding: 20px 25px;
-                border-radius: 10px;
-                box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-                text-align: center;
-                color: white;
-                min-height: 160px;
-                display: flex;
-                flex-direction: column;
-                justify-content: center;
-            ">
-                <div style="font-size: 28px; margin-bottom: 8px;">??</div>
-                <div style="font-size: 12px; opacity: 0.95; margin-bottom: 6px; font-weight: 500;">Promedio</div>
-                <div style="font-size: 28px; font-weight: bold;">{df_grafico['MATRICULADOS'].mean():,.0f}</div>
+                <div style="font-size: 36px; margin-bottom: 10px;">🏫</div>
+                <div style="font-size: 13px; opacity: 0.95; margin-bottom: 8px; font-weight: 500; letter-spacing: 0.3px;">Universidades</div>
+                <div style="font-size: 32px; font-weight: bold; line-height: 1.2;">{total_universidades}</div>
             </div>
             """,
                 unsafe_allow_html=True,
@@ -282,9 +223,9 @@ if df is not None:
 
         st.plotly_chart(fig, use_container_width=True)
     else:
-        st.warning("?? No hay datos que mostrar con los filtros seleccionados.")
+        st.warning("⚠️ No hay datos que mostrar con los filtros seleccionados.")
 
 else:
     st.error(
-        "?? No se pudo cargar el archivo base.xlsx. Verifica que el archivo existe en la carpeta 'db'."
+        "❌ No se pudo cargar el archivo base.xlsx. Verifica que el archivo existe en la carpeta 'db'."
     )

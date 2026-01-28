@@ -46,9 +46,7 @@ if df is not None:
 
     # Filtro 1: País
     with col1:
-        paises = ["Todos"] + sort_filter_values(
-            df["PAIS"].dropna().unique().tolist()
-        )
+        paises = ["Todos"] + sort_filter_values(df["PAIS"].dropna().unique().tolist())
         pais_seleccionado = st.selectbox("País", paises, key="pais")
 
     # Aplicar filtro de país
@@ -178,6 +176,13 @@ if df is not None:
 
         col1, col2, col3, col4 = st.columns(4)
 
+        # Calcular el total real de carreras después de aplicar los filtros, antes del top 10
+        total_carreras_real = (
+            df_filtrado["NOMBRE CARRERA"].nunique()
+            if "NOMBRE CARRERA" in df_filtrado.columns
+            else 0
+        )
+
         # Obtener nombres de carreras y calcular tamaño de fuente dinámico
         carrera_mayor = df_grafico.iloc[-1]["CARRERA"]
         carrera_menor = df_grafico.iloc[0]["CARRERA"]
@@ -203,7 +208,7 @@ if df is not None:
             ">
                 <div style="font-size: 28px; margin-bottom: 8px;">📋</div>
                 <div style="font-size: 12px; opacity: 0.95; margin-bottom: 6px; font-weight: 500;">Total Carreras</div>
-                <div style="font-size: 28px; font-weight: bold;">{len(df_grafico)}</div>
+                <div style="font-size: 28px; font-weight: bold;">{total_carreras_real}</div>
             </div>
             """,
                 unsafe_allow_html=True,
