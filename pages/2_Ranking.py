@@ -36,7 +36,7 @@ df = load_data()
 
 if df is not None:
     # Título principal
-    st.title("📊 Ranking de Carreras - Matriculados Internacionales")
+    st.title("📊 Rankings - Matriculados Internacionales")
 
     # Sección de filtros
     st.subheader("🔍 Filtros")
