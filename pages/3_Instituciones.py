@@ -147,6 +147,17 @@ if df is not None:
     )  # Gris por defecto
 
     if len(df_bubble) > 0:
+        # Escalado dinamico de burbujas para una vista general consistente
+        max_paises = max(1, int(df_bubble["NUM_PAISES"].max()))
+        num_burbujas = len(df_bubble)
+        if num_burbujas <= 25:
+            size_max = 60
+        elif num_burbujas <= 60:
+            size_max = 48
+        else:
+            size_max = 38
+        sizeref = 2.0 * max_paises / (size_max**2)
+
         # Crear bubble chart con Plotly
         fig = go.Figure()
 
@@ -161,8 +172,7 @@ if df is not None:
                     mode="markers",
                     name=nivel,
                     marker=dict(
-                        size=df_nivel["NUM_PAISES"]
-                        * 3,  # Multiplicar para mejor visualización
+                        size=df_nivel["NUM_PAISES"],
                         color=(
                             df_nivel["COLOR"].iloc[0]
                             if len(df_nivel) > 0
@@ -170,9 +180,9 @@ if df is not None:
                         ),
                         opacity=0.7,
                         line=dict(width=2, color="white"),
-                        sizemode="diameter",
-                        sizeref=2 * max(df_bubble["NUM_PAISES"]) / (40**2),
-                        sizemin=4,
+                        sizemode="area",
+                        sizeref=sizeref,
+                        sizemin=6,
                     ),
                     text=[
                         f"<b>{carrera}</b><br>"
@@ -203,7 +213,7 @@ if df is not None:
         )
 
         # Agregar padding del 20% en cada lado
-        x_padding = (x_max - x_min) * 0.2
+        x_padding = max(1, (x_max - x_min) * 0.2)
         y_padding_log = 0.3  # Padding en escala logarítmica
 
         fig.update_layout(

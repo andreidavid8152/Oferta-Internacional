@@ -266,6 +266,10 @@ if df is not None:
             )
 
         st.plotly_chart(fig, use_container_width=True)
+    else:
+        st.warning("⚠️ No hay datos que mostrar con los filtros seleccionados.")
+
+else:
     st.error(
         "⚠️ No se pudo cargar el archivo base.xlsx. Verifica que el archivo existe en la carpeta 'db'."
     )
