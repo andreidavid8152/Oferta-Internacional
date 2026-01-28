@@ -248,13 +248,7 @@ if df is not None:
                 autorange=True,
             ),
             margin=dict(l=100, r=100, t=100, b=100),
-            legend=dict(
-                x=0.01,
-                y=0.99,
-                bgcolor="rgba(255, 255, 255, 0.9)",
-                bordercolor="gray",
-                borderwidth=1,
-            ),
+            showlegend=False,
         )
 
         col1, col2, col3, col4 = st.columns(4)

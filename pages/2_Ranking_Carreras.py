@@ -114,7 +114,8 @@ if df is not None:
         lambda x: x[:50] + "..." if len(x) > 50 else x
     )
 
-    # Ordenar por matriculados de mayor a menor (para el gráfico)
+    # Mantener solo el top 10 y ordenar para el gr?fico
+    df_grafico = df_grafico.sort_values("MATRICULADOS", ascending=False).head(10)
     df_grafico = df_grafico.sort_values("MATRICULADOS", ascending=True)
 
     if len(df_grafico) > 0:
