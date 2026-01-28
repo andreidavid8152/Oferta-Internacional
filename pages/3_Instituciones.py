@@ -17,10 +17,20 @@ def load_data():
         df = pd.read_excel(file_path)
         # Limpiar nombres de columnas
         df.columns = df.columns.str.strip()
+
+        # Normalizar espacios en columnas usadas por filtros
+        filter_cols = ["PAIS", "FINANCIAMIENTO", "TIPO", "NIVEL", "FACULTAD ASOCIADA"]
+        for col in filter_cols:
+            if col in df.columns:
+                df[col] = df[col].astype("string").str.strip()
         return df
     except Exception as e:
         st.error(f"Error al cargar el archivo: {str(e)}")
         return None
+
+
+def sort_filter_values(values):
+    return sorted(values, key=lambda v: str(v).lower())
 
 
 # Cargar datos
@@ -38,7 +48,9 @@ if df is not None:
 
     # Filtro 1: País
     with col1:
-        paises = ["Todos"] + sorted(df["PAIS"].dropna().unique().tolist())
+        paises = ["Todos"] + sort_filter_values(
+            df["PAIS"].dropna().unique().tolist()
+        )
         pais_seleccionado = st.selectbox("País", paises, key="pais")
 
     # Aplicar filtro de país
@@ -49,7 +61,7 @@ if df is not None:
 
     # Filtro 2: Financiamiento (cascada) - Excluir SIN ESPECIFICAR
     with col2:
-        financiamientos = ["Todos"] + sorted(
+        financiamientos = ["Todos"] + sort_filter_values(
             [
                 f
                 for f in df_filtrado["FINANCIAMIENTO"].dropna().unique().tolist()
@@ -68,7 +80,7 @@ if df is not None:
 
     # Filtro 3: Tipo (cascada) - Excluir SIN CLASIFICAR
     with col3:
-        tipos = ["Todos"] + sorted(
+        tipos = ["Todos"] + sort_filter_values(
             [
                 t
                 for t in df_filtrado["TIPO"].dropna().unique().tolist()
@@ -83,7 +95,9 @@ if df is not None:
 
     # Filtro 4: Nivel (cascada)
     with col4:
-        niveles = ["Todos"] + sorted(df_filtrado["NIVEL"].dropna().unique().tolist())
+        niveles = ["Todos"] + sort_filter_values(
+            df_filtrado["NIVEL"].dropna().unique().tolist()
+        )
         nivel_seleccionado = st.selectbox("Nivel", niveles, key="nivel")
 
     # Aplicar filtro de nivel
@@ -92,7 +106,7 @@ if df is not None:
 
     # Filtro 5: Facultad (cascada)
     with col5:
-        facultades = ["Todos"] + sorted(
+        facultades = ["Todos"] + sort_filter_values(
             df_filtrado["FACULTAD ASOCIADA"].dropna().unique().tolist()
         )
         facultad_seleccionada = st.selectbox("Facultad", facultades, key="facultad")

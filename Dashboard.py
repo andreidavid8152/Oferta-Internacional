@@ -16,10 +16,20 @@ def load_data():
         df = pd.read_excel(file_path)
         # Limpiar nombres de columnas
         df.columns = df.columns.str.strip()
+
+        # Normalizar espacios en columnas usadas por filtros
+        filter_cols = ["PAIS", "FINANCIAMIENTO", "TIPO", "NIVEL", "FACULTAD ASOCIADA"]
+        for col in filter_cols:
+            if col in df.columns:
+                df[col] = df[col].astype("string").str.strip()
         return df
     except Exception as e:
         st.error(f"Error al cargar el archivo: {str(e)}")
         return None
+
+
+def sort_filter_values(values):
+    return sorted(values, key=lambda v: str(v).lower())
 
 
 # Cargar datos
@@ -37,7 +47,9 @@ if df is not None:
 
     # Filtro 1: País
     with col1:
-        paises = ["Todos"] + sorted(df["PAIS"].dropna().unique().tolist())
+        paises = ["Todos"] + sort_filter_values(
+            df["PAIS"].dropna().unique().tolist()
+        )
         pais_seleccionado = st.selectbox("País", paises, key="pais")
 
     # Aplicar filtro de país
@@ -48,7 +60,7 @@ if df is not None:
 
     # Filtro 2: Financiamiento (cascada)
     with col2:
-        financiamientos = ["Todos"] + sorted(
+        financiamientos = ["Todos"] + sort_filter_values(
             [
                 f
                 for f in df_filtrado["FINANCIAMIENTO"].dropna().unique().tolist()
@@ -67,7 +79,7 @@ if df is not None:
 
     # Filtro 3: Tipo (cascada)
     with col3:
-        tipos = ["Todos"] + sorted(
+        tipos = ["Todos"] + sort_filter_values(
             [
                 t
                 for t in df_filtrado["TIPO"].dropna().unique().tolist()
@@ -82,7 +94,9 @@ if df is not None:
 
     # Filtro 4: Nivel (cascada)
     with col4:
-        niveles = ["Todos"] + sorted(df_filtrado["NIVEL"].dropna().unique().tolist())
+        niveles = ["Todos"] + sort_filter_values(
+            df_filtrado["NIVEL"].dropna().unique().tolist()
+        )
         nivel_seleccionado = st.selectbox("Nivel", niveles, key="nivel")
 
     # Aplicar filtro de nivel
@@ -91,7 +105,7 @@ if df is not None:
 
     # Filtro 5: Facultad (cascada)
     with col5:
-        facultades = ["Todos"] + sorted(
+        facultades = ["Todos"] + sort_filter_values(
             df_filtrado["FACULTAD ASOCIADA"].dropna().unique().tolist()
         )
         facultad_seleccionada = st.selectbox("Facultad", facultades, key="facultad")
@@ -162,12 +176,9 @@ if df is not None:
     # Agrupar por carrera y sumar matriculados
     df_tabla = df_tabla.groupby("CARRERA", as_index=False)["MATRICULADOS"].sum()
 
-    # Ordenar alfabéticamente por carrera
-    df_tabla = df_tabla.sort_values("CARRERA", ascending=True)
+    # Ordenar de mayor a menor por matriculados
+    df_tabla = df_tabla.sort_values("MATRICULADOS", ascending=False)
 
-    # Resetear índice para que comience en 1
-    df_tabla.reset_index(drop=True, inplace=True)
-    df_tabla.index = df_tabla.index + 1
 
     # Calcular altura dinámica de la tabla (aproximadamente 35px por fila + header)
     num_filas = len(df_tabla)
@@ -185,6 +196,7 @@ if df is not None:
         df_tabla,
         use_container_width=True,
         height=int(altura_dinamica),
+        hide_index=True,
         column_config={
             "CARRERA": st.column_config.TextColumn("CARRERA", width="large"),
             "MATRICULADOS": st.column_config.NumberColumn("MATRICULADOS", format="%d"),
